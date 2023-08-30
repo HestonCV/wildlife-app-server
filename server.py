@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, send_file
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from sqlalchemy.exc import SQLAlchemyError
-from models import db, User, Camera, Image
+from models import db, User, Camera, Image, PreProvisionedCamera
 from PIL import Image as PILImage
 from werkzeug.utils import secure_filename
 from datetime import datetime
@@ -377,7 +377,47 @@ def get_class_images(class_name):
                     'message': 'Database error'
                 }), 500
     
+@app.route('/cameras', methods=['POST'])
+@jwt_required()
+def pair_camera():
+    user = User.query.get(get_jwt_identity())
+    data = request.get_json()
+    token = data.get('token')
+    name = data.get('name')
+    description = data.get('description')
+    pre_camera = PreProvisionedCamera.query.filter_by(token=token, paired=False).first()
+    if pre_camera:
+        new_camera = Camera(name=name, description=description, user_id=user.id, token=token)
+        db.session.add(new_camera)
+        pre_camera.paired = True
+        db.session.commit()
+        return jsonify({
+            'status': 'success',
+            'message': 'Camera Paired'
+        }), 201
+    else:
+        return jsonify({
+            'status': 'error',
+            'message': 'Invalid token or camera is already paired'
+        }), 400
 
+@app.route('/preprovisioned-cameras/<string:token>/check_pair', methods=['GET'])
+def check_camera_pair(token):
+    pre_camera = PreProvisionedCamera.query.filter_by(token=token, paired=True).first()
+    if pre_camera:
+        camera = Camera.query.filter_by(token=token).first()
+        access_token = create_access_token(identity=camera.id)
+        return jsonify({
+            'status': 'success',
+            'message': 'Camera is paired',
+            'data': {
+                'access_token': access_token
+            }
+        }), 201
+    return jsonify({
+        'status': 'error',
+        'message': 'Invalid token or camera is not paired'
+    }), 400
 
     
 if __name__ == '__main__':

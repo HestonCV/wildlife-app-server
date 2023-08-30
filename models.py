@@ -25,3 +25,7 @@ class Image(db.Model):
     classification = db.Column(db.String(50), nullable=False)
     date_time = db.Column(db.DateTime, nullable=False)
 
+class PreProvisionedCamera(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    token = db.Column(db.String(256), nullable=False, unique=True)
+    paired = db.Column(db.Boolean, nullable=False, default=False)
