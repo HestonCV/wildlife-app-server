@@ -125,6 +125,27 @@ def login_user():
             'status': 'error',
             'message': 'Database error'
             }), 500
+    
+@app.route('/validate_token', methods=['POST'])
+@jwt_required()
+def validate_token():
+    user = User.query.get(get_jwt_identity())
+    if user:
+        return jsonify({
+            'status': 'success',
+            'message': 'User logged in',
+            'data': {
+                'authorized': True
+            }
+        }), 200
+    else:
+        return jsonify({
+            'status': 'error',
+            'message': 'User not found',
+            'data': {
+                'authorized': False
+            }
+        }), 404
 
 @app.route('/images', methods=['POST'])
 @jwt_required()
@@ -421,4 +442,4 @@ def check_camera_pair(token):
 
     
 if __name__ == '__main__':
-    app.run('localhost', port=5000, debug=True)
+    app.run('0.0.0.0', port=5000, debug=True)
