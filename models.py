@@ -12,10 +12,10 @@ class User(db.Model):
   
 class Camera(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    name = db.Column(db.String(100), nullable=False, unique=True)
+    token = db.Column(db.String(256), nullable=False, unique=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    name = db.Column(db.String(100))
     description = db.Column(db.String(500))
-    token = db.Column(db.String(256), unique=True)
     images = db.relationship('Image', backref='camera')
 
 class Image(db.Model):
@@ -24,8 +24,3 @@ class Image(db.Model):
     file_name = db.Column(db.String(250), nullable=False, unique=True)
     classification = db.Column(db.String(50), nullable=False)
     date_time = db.Column(db.DateTime, nullable=False)
-
-class PreProvisionedCamera(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    token = db.Column(db.String(256), nullable=False, unique=True)
-    paired = db.Column(db.Boolean, nullable=False, default=False)

@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, send_file
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from sqlalchemy.exc import SQLAlchemyError
-from models import db, User, Camera, Image, PreProvisionedCamera
+from models import db, User, Camera, Image
 from PIL import Image as PILImage
 from werkzeug.utils import secure_filename
 from datetime import datetime
@@ -16,6 +16,7 @@ app.config['JWT_SECRET_KEY'] = '5B17LjyoR0qc+yHmxMFpCjPMU9mAsinQfsPWJSbTpfY='
 jwt = JWTManager(app)
 
 db.init_app(app)
+
 
 def generate_hashed_password(password):
     salt = bcrypt.gensalt()
@@ -50,12 +51,21 @@ def register_user():
         # validate email and password
         email = data.get('email')
         password = data.get('password')
+
         if not email or not password:
             return jsonify({
                 'status': 'error',
                 'message': 'Email and password are required'
             }), 400
         
+        # format names
+        first_name = first_name.strip()
+        last_name = last_name.strip()
+
+        # format email
+        email = email.strip().lower()
+        # TODO: validate email and password for formatting
+
         # check if a user exists with the same email
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
@@ -97,6 +107,9 @@ def login_user():
                 'message': 'Email and password are required'
             }), 400
         
+        # format email
+        email = email.strip().lower()
+
         # check if user exists
         existing_user = User.query.filter_by(email=email).first()
         if not existing_user:
@@ -117,7 +130,9 @@ def login_user():
         return jsonify({
             'status': 'success',
             'message': 'Login match',
-            'access_token': access_token
+            'data': {
+                'access_token': access_token
+            }
         }), 200
     
     except SQLAlchemyError:
@@ -406,11 +421,11 @@ def pair_camera():
     token = data.get('token')
     name = data.get('name')
     description = data.get('description')
-    pre_camera = PreProvisionedCamera.query.filter_by(token=token, paired=False).first()
-    if pre_camera:
-        new_camera = Camera(name=name, description=description, user_id=user.id, token=token)
-        db.session.add(new_camera)
-        pre_camera.paired = True
+    camera = Camera.query.filter_by(token=token).first()
+    if camera and not camera.user_id:
+        user.cameras.append(camera)
+        camera.name = name
+        camera.description = description
         db.session.commit()
         return jsonify({
             'status': 'success',
@@ -422,11 +437,10 @@ def pair_camera():
             'message': 'Invalid token or camera is already paired'
         }), 400
 
-@app.route('/preprovisioned-cameras/<string:token>/check_pair', methods=['GET'])
+@app.route('/cameras/<string:token>/check_pair', methods=['GET'])
 def check_camera_pair(token):
-    pre_camera = PreProvisionedCamera.query.filter_by(token=token, paired=True).first()
-    if pre_camera:
-        camera = Camera.query.filter_by(token=token).first()
+    camera = Camera.query.filter_by(token=token).first()
+    if camera and camera.user_id:
         access_token = create_access_token(identity=camera.id)
         return jsonify({
             'status': 'success',
