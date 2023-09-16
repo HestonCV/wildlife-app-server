@@ -34,7 +34,8 @@ The Wildlife App Server is a Flask application that serves as the core backend f
 - **User Registration**: Allows new users to register.
 - **User Login**: Allows existing users to login using email and password.
 - **Password Hashing**: Stores hashed passwords for security.
- 
+
+![Class Diagram](https://i.imgur.com/Nbk4NMg.png)
 ## Endpoints
 
 ### User Management
