@@ -82,4 +82,4 @@ The Wildlife App Server is a Flask application that serves as the core backend f
 
 Name - Heston Vaughan  
 Email - [heston.cv@gmail.com](mailto:heston.cv@gmail.com)  
-Project Link: [https://github.com/username/wildlife-app-server](https://github.com/username/wildlife-app-server)
+Project Link: [https://github.com/HestonCV/wildlife-app-server](https://github.com/HestonCV/wildlife-app-server)
