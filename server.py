@@ -227,7 +227,7 @@ def upload_image():
 # the image files can be retrieved at /images/<int:image_id>/full or thumbnail
 @app.route('/images/data', methods=['GET'])
 @jwt_required()
-def get_images():
+def get_images_data():
     response_data = []
     try:
         user = User.query.get(get_jwt_identity())
@@ -325,6 +325,41 @@ def get_thumbnail_image(image_id):
                     'message': 'Database error'
                 }), 500
 
+# removes image with matching id from file and database
+@app.route('images/<int:image_id>', methods=['DELETE'])
+@jwt_required()
+def delete_image(image_id):
+    user = User.query.get(get_jwt_identity())
+    cameras = user.cameras
+    if cameras:
+        # for each image in every camera the user is paired to
+        for camera in cameras:
+            images = camera.images
+            for image in images:
+                if image.id == image_id:
+
+                    # delete the image from the file system
+                    os.remove(os.path.join('./uploads/full', image.file_name))
+                    os.remove(os.path.join('./uploads/thumbnail', image.file_name))
+
+                    # delete the image from the database
+                    db.session.delete(image)
+                    db.session.commit()
+                    return jsonify({
+                        "status": "success",
+                        "message": "Image deleted",
+                    }), 200
+        # if no image matches the given id
+        return jsonify({
+            "status": "error",
+            "message": "Image not found"
+        }), 404
+    # if cameras does not exist
+    else:
+        return jsonify({
+            "status": "error",
+            "message": "User has no paired cameras"
+        }), 404
 
 
 @app.route('/cameras/<int:camera_id>/images/data', methods=['GET'])
