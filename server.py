@@ -326,7 +326,7 @@ def get_thumbnail_image(image_id):
                 }), 500
 
 # removes image with matching id from file and database
-@app.route('images/<int:image_id>', methods=['DELETE'])
+@app.route('/images/<int:image_id>', methods=['DELETE'])
 @jwt_required()
 def delete_image(image_id):
     user = User.query.get(get_jwt_identity())
