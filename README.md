@@ -63,8 +63,18 @@ The Wildlife App Server is a Flask application that serves as the core backend f
 
 ## Code Structure
 
-- **server.py**: Handles the core functionality, including routes, authentication, and interactions with the database.
-- **models.py**: Defines the database models for users, cameras, and images.
+- `app/`: Core application folder
+  - `__init__.py`: Initializes Flask app and database.
+  - `models/`: Contains database models.
+    - `user.py`: User model.
+    - `camera.py`: Camera model.
+    - `image.py`: Image model.
+  - `routes/`: Contains route definitions.
+    - `user_routes.py`: User-related routes.
+    - `camera_routes.py`: Camera-related routes.
+    - `image_routes.py`: Image-related routes.
+  - `utils.py`: Utility functions like password hashing.
+- `run.py`: Entry point for running the Flask app.
 
 ## Challenges and Solutions
 
